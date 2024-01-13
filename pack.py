@@ -15,7 +15,7 @@ def packing(source: str, destination: str, segment_size=-1, password=""):
 def unpacking(source: str, destination: str, password=""):
     out, code = execute(f"file {source}", get_output=True)
     if "rar" in out.lower():
-        return_code = execute(f'rar x {"-p" + password if password != "" else ""} -o"{destination}" "{source}"')
+        return_code = execute(f'rar x {"-p" + password if password != "" else ""} "{source}" "{destination}"')
     else:
         return_code = execute(f'7z x -y {"-p" + password if password != "" else ""} -o"{destination}" "{source}"')
     if return_code != 0:
