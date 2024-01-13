@@ -8,6 +8,9 @@ import rclone
 from typing import List
 
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
 def complete(file: File, completed_file: List[File]):
     for i in completed_file:
         if i.name == file.name:
