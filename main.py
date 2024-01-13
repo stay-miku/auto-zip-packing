@@ -78,19 +78,19 @@ if __name__ == '__main__':
             continue
         logging.info(f"start repack {need_repack_file.name}")
         if not need_repack_file.copy_to_local(tmp_local_dir):
-            logging.error(f"{need_repack_file.name} copy to local failed, skip")
-            break
+            logging.error(f"{need_repack_file.name} copy to local failed, stop")
+            exit(1)
         if not need_repack_file.unpacking(tmp_unpacking_dir, password):
-            logging.error(f"{need_repack_file.name} unpacking failed, skip")
-            break
+            logging.error(f"{need_repack_file.name} unpacking failed, stop")
+            exit(1)
         clear_dir(tmp_local_dir)
         if not need_repack_file.repacking(tmp_repacked_dir):
-            logging.error(f"{need_repack_file.name} repacking failed, skip")
-            break
+            logging.error(f"{need_repack_file.name} repacking failed, stop")
+            exit(1)
         clear_dir(tmp_unpacking_dir)
         if not need_repack_file.post_to_remote():
-            logging.error(f"{need_repack_file.name} post to remote failed, skip")
-            break
+            logging.error(f"{need_repack_file.name} post to remote failed, stop")
+            exit(1)
         clear_dir(tmp_repacked_dir)
         logging.info(f"{need_repack_file.name} repack complete")
 

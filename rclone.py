@@ -4,6 +4,7 @@ from typing import List
 
 
 def execute(command: str, get_output=False):
+    logging.info(f"executing: {command}")
     if get_output:
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
         return result.stdout.decode('utf-8'), result.returncode
