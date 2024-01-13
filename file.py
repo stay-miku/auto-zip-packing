@@ -9,11 +9,13 @@ import pack
 def get_file_name(file: List[str]):
     file_full_path = file[1]
     file_name = file_full_path.split("/")[-1]
-    if "." in file_name:
-        extension = file_name.rsplit(".", 1)[-1]
-        if extension.isdigit():
-            file_name = file_name.rsplit(".", 1)[0]
-            return file_name
+    # if "." in file_name:
+    #     extension = file_name.rsplit(".", 1)[-1]
+    #     if extension.isdigit():
+    #         file_name = file_name.rsplit(".", 1)[0]
+    #         return file_name
+
+    file_name = file_name.rsplit(".", 2)[0]
 
     return file_name
 
@@ -34,7 +36,7 @@ class File:
     local_path: str
     repacked_path: str  # 重新打包后的文件路径
     repacked_post_path: str  # 重新打包后的文件上传路径
-    file_format: str  # rar zip 7z     由拓展名识别
+    # file_format: str  # rar zip 7z     由拓展名识别
     unpacking_tmp_path: str  # 解压缩临时文件夹
     size: int  # 文件大小
     name: str  # 文件名 不包含拓展名
@@ -106,9 +108,10 @@ class File:
                 f = f[0]
                 file.remote_path = f[1].rsplit("/", 1)[0]
                 file.local_path = ""
-                file.file_format = i.rsplit(".", 1)[-1]
+                # file.file_format = i.rsplit(".", 1)[-1]
                 file.size = f[0]
-                file.name = i.split(".", 1)[0]
+                # file.name = i.split(".", 1)[0]
+                file.name = i
                 file.segments = [{"size": f[0], "path": f[1]}]
                 file.repacked_path = ""
                 file.repacked_post_path = repacked_post_path
@@ -117,9 +120,10 @@ class File:
                 file = File()
                 file.remote_path = f[0][1].rsplit("/", 1)[0]
                 file.local_path = ""
-                file.file_format = i.rsplit(".", 1)[-1]
+                # file.file_format = i.rsplit(".", 1)[-1]
                 file.size = sum([j[0] for j in f])
-                file.name = i.split(".", 1)[0]
+                # file.name = i.split(".", 1)[0]
+                file.name = i
                 file.segments = []
                 for j in f:
                     file.segments.append({"size": j[0], "path": j[1]})
