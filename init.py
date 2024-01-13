@@ -8,7 +8,7 @@ with open("/etc/apt/sources.list", "r") as f:
     sources = f.read()
 
 # 为每个source添加contrib non-free
-
+print("adding contrib non-free")
 sources = sources.split("\n")
 for i in range(len(sources)):
     if sources[i].strip().startswith("#"):

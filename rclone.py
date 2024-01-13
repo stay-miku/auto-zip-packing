@@ -20,10 +20,12 @@ def copy_file(source: str, destination: str):
 
 
 def ls(path: str, max_depth=20):
+    if not path.endswith("/") and not path.endswith("\\"):
+        path += "/"
     output, return_code = execute(f'rclone ls "{path}" --max-depth={max_depth}', get_output=True)
     if return_code != 0:
         logging.error(f"rclone ls {path} failed with return code {return_code}")
         return []
     files_path = output.split('\n')
-    file_and_size = [[int(i.strip().split(" ", 1)[0]), i.strip().split(" ", 1)[-1]] for i in files_path if i != '']
+    file_and_size = [[int(i.strip().split(" ", 1)[0]), path + i.strip().split(" ", 1)[-1]] for i in files_path if i != '']
     return file_and_size
