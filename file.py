@@ -11,14 +11,23 @@ def get_file_name(file: List[str]):
     file_name = file_full_path.split("/")[-1]
 
     division = file_name.rsplit(".", 2)
-    if len(division) <= 2:
+    if len(division) < 2:
         return file_name
+
+    if len(division) == 2:
+        if division[1].startswith("r") and division[1][1:].isdigit():
+            return division[0] + ".rar"
+        else:
+            return file_name
 
     if division[2].isdigit():
         return division[0] + "." + division[1]
 
     if division[1].startswith("part"):
         return division[0] + "." + division[2]
+
+    if division[2].startswith("r") and division[2][1:].isdigit():
+        return division[0] + ".rar"
 
     logging.warning(f"can not get file type from {file_full_path}")
     return file_name
