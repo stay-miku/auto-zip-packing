@@ -84,7 +84,7 @@ if __name__ == '__main__':
             logging.error(f"{need_repack_file.name} unpacking failed, stop")
             exit(1)
         clear_dir(tmp_local_dir)
-        if not need_repack_file.repacking(tmp_repacked_dir):
+        if not need_repack_file.packing(tmp_repacked_dir):
             logging.error(f"{need_repack_file.name} repacking failed, stop")
             exit(1)
         clear_dir(tmp_unpacking_dir)
