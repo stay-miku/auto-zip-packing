@@ -69,7 +69,7 @@ class File:
 
             if division[1].startswith("part"):
                 old_name = name
-                new_name = division[0] + "." + division[2] + "." + division[1][4:]
+                new_name = division[0] + "." + division[2] + "." + "{:03d}".format(int(division[1][4:]))
                 os.rename(os.path.join(self.local_path, old_name), os.path.join(self.local_path, new_name))
                 self.segments[i]["path"] = os.path.join(self.local_path, new_name)
 
