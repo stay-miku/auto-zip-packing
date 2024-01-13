@@ -50,11 +50,11 @@ class File:
         pass
 
     def first_segment(self):
-        for i in self.segments:
-            division = i["path"].rsplit(".", 2)
-            if len(division) > 2 and division[2].isdigit() and int(division[2]) == 1:
-                return i
-        return None
+        path = [i["path"] for i in self.segments]
+        path = sorted(path)
+        if path[-1].lower().endswith("rar"):
+            return path[-1]
+        return path[0]
 
     # 重命名part01.rar以及更新segment路径
     def rename(self):
@@ -105,7 +105,6 @@ class File:
         if first_segment is None:
             logging.error(f"can not find first segment of {self.name}")
             return False
-        first_segment = first_segment["path"]
         logging.info(f"unpacking {self.name} to {destination}")
         if not pack.unpacking(first_segment, destination, password):
             return False
@@ -116,7 +115,7 @@ class File:
             destination += "/"
         self.repacked_path = destination
         logging.info(f"packing {self.name} to {destination}")
-        if not pack.packing(self.unpacking_tmp_path, destination + self.name + ".7z", password="", segment_size=(0 if self.first_segment() is None else self.first_segment()["size"])):
+        if not pack.packing(self.unpacking_tmp_path, destination + self.name + ".7z", password="", segment_size=(0 if len(self.segments) <= 1 else max([i["size"] for i in self.segments]))):
             return False
         return True
 

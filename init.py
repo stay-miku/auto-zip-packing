@@ -1,7 +1,7 @@
 from rclone import execute
 
 
-packs = ["zip", "unzip", "rar", "unrar", "p7zip-full"]
+packs = ["rar", "unrar", "p7zip-full"]
 
 
 with open("/etc/apt/sources.list", "r") as f:
