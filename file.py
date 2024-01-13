@@ -58,6 +58,7 @@ class File:
 
     # 重命名part01.rar以及更新segment路径
     def rename(self):
+        logging.info(f"rename {self.name} files")
         for i in range(len(self.segments)):
             path = self.segments[i]["path"]
             division = path.rsplit(".", 2)
@@ -72,6 +73,9 @@ class File:
                 os.rename(os.path.join(self.local_path, old_name), os.path.join(self.local_path, new_name))
                 self.segments[i]["path"] = os.path.join(self.local_path, new_name)
 
+            else:
+                name = path.rsplit("/", 1)[-1]
+                self.segments[i]["path"] = os.path.join(self.local_path, name)
 
     def copy_to_local(self, local_path: str):
         self.local_path = local_path
