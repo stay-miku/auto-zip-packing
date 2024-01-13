@@ -1,5 +1,6 @@
 import logging
 import subprocess
+from typing import List
 
 
 def execute(command: str, get_output=False):
@@ -11,12 +12,24 @@ def execute(command: str, get_output=False):
         return result.returncode
 
 
-def copy_file(source: str, destination: str):
-    return_code = execute(f'rclone copy "{source}" "{destination}" -P')
-    if return_code != 0:
-        logging.error(f"rclone copy {source} {destination} failed with return code {return_code}")
-        return False
-    return True
+def copy_file(source: str or List[str], destination: str):
+    if isinstance(source, str):
+        return_code = execute(f'rclone copy "{source}" "{destination}" -P')
+        if return_code != 0:
+            logging.error(f"rclone copy {source} {destination} failed with return code {return_code}")
+            return False
+        return True
+    # 需要为同一drive的同一文件夹内的文件
+    else:
+        with open("list.txt", "w") as f:
+            for i in source:
+                f.write(i.rsplit("/", 1)[-1] + "\n")
+        drive = source[0].rsplit("/", 1)[0] + "/"
+        return_code = execute(f'rclone copy "{drive}" "{destination}" --include-from=list.txt -P')
+        if return_code != 0:
+            logging.error(f"rclone copy {drive} {destination} failed with return code {return_code}")
+            return False
+        return True
 
 
 def ls(path: str, max_depth=20):
