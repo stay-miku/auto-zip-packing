@@ -71,7 +71,7 @@ if __name__ == '__main__':
     source_files = File.from_list(source_files, destination_files)
     destination_files = File.from_list(destination_files, "")
 
-    logging.info(f"get {len(source_files)} files from remote, start repack")
+    logging.info(f"get {len(source_files)} single files from remote, start repack")
     for need_repack_file in source_files:
         if complete(need_repack_file, destination_files):
             logging.info(f"{need_repack_file.name} is already complete, skip")
