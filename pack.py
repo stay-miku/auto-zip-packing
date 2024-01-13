@@ -4,8 +4,9 @@ from rclone import execute
 
 
 def packing(source: str, destination: str, segment_size=-1, password=""):
-
-    return_code = execute(f'7z a {"-v" + str(segment_size) if segment_size > 0 else ""} {"-p" + password if password != "" else ""} -t7z -mx=0 -r -x"!..\*" {destination} "{source}"*')
+    if not source.endswith("/") or not source.endswith("\\"):
+        source += "/"
+    return_code = execute(f'7z a {"-v" + str(segment_size) if segment_size > 0 else ""} {"-p" + password if password != "" else ""} -t7z -mx=0 -r "{destination}" "{source}"*')
     if return_code != 0:
         return False
     return True

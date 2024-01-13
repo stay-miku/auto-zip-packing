@@ -61,14 +61,14 @@ class File:
         logging.info(f"rename {self.name} files")
         for i in range(len(self.segments)):
             path = self.segments[i]["path"]
-            division = path.rsplit(".", 2)
+            name = path.rsplit("/", 1)[-1]
+            division = name.rsplit(".", 2)
             if len(division) <= 2:
-                name = path.rsplit("/", 1)[-1]
                 self.segments[i]["path"] = os.path.join(self.local_path, name)
                 continue
 
             if division[1].startswith("part"):
-                old_name = path.rsplit("/", 1)[-1]
+                old_name = name
                 new_name = division[0] + "." + division[2] + "." + division[1][4:]
                 os.rename(os.path.join(self.local_path, old_name), os.path.join(self.local_path, new_name))
                 self.segments[i]["path"] = os.path.join(self.local_path, new_name)

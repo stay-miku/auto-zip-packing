@@ -68,7 +68,7 @@ if __name__ == '__main__':
     source_files = rclone.ls(source_dir, max_depth)
     destination_files = rclone.ls(destination_dir, max_depth)
 
-    source_files = File.from_list(source_files, destination_files)
+    source_files = File.from_list(source_files, destination_dir)
     destination_files = File.from_list(destination_files, "")
 
     logging.info(f"get {len(source_files)} single files from remote, start repack")
