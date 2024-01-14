@@ -5,6 +5,15 @@ import logging
 import pack
 
 
+def get_files_size(path: str):
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            file_path = os.path.join(dirpath, filename)
+            total_size += os.path.getsize(file_path)
+    return total_size
+
+
 # 会去除分卷拓展名
 def get_file_name(file: List[str]):
     file_full_path = file[1]
@@ -125,8 +134,8 @@ class File:
         self.repacked_path = destination
         logging.info(f"packing {self.name} to {destination}")
         if not pack.packing(self.unpacking_tmp_path, destination + self.name + ".7z", password="", segment_size=(0 if len(self.segments) <= 1 else max([i["size"] for i in self.segments]))):
-            return False
-        return True
+            return None
+        return get_files_size(self.repacked_path)
 
     @classmethod
     def from_list(cls, path_list: List[List[str]], repacked_post_path: str):
