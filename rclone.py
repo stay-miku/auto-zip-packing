@@ -68,4 +68,5 @@ def remaining_space(path: str):
         logging.error(f"rclone about {path} failed with return code {return_code}")
         return 0
     output = json.loads(output)
+    logging.info(f"remaining space of {path}: {output['free']}")
     return output["free"]

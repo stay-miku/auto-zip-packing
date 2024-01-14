@@ -21,7 +21,7 @@ file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 
 logging.getLogger().addHandler(file_handler)
-logging.getLogger().addHandler(console_handler)
+# logging.getLogger().addHandler(console_handler)
 
 
 def complete(file: File, completed_file: List[File]):
@@ -121,9 +121,10 @@ if __name__ == '__main__':
                 error_file(need_repack_file)
                 continue
             while rclone.remaining_space(destination_dir[target_index]) < size:
+                logging.info(f"{destination_dir[target_index]} no enough space, change to next")
                 target_index += 1
                 if target_index >= len(destination_dir):
-                    logging.error(f"{need_repack_file.name} no enough space, skip")
+                    logging.error(f"{need_repack_file.name} no enough space, stop")
                     error_file(need_repack_file)
                     exit(1)
             clear_dir(tmp_unpacking_dir)
