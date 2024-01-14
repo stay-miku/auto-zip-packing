@@ -60,6 +60,7 @@ if __name__ == '__main__':
     password = config["password"]
     max_depth = config["max_depth"]
     tmp_dir = config["tmp_dir"]
+    do_not_repack = config["do_not_repack"]
 
     target_index = 0
 
@@ -110,31 +111,49 @@ if __name__ == '__main__':
                 logging.error(f"{need_repack_file.name} copy to local failed, skip")
                 error_file(need_repack_file)
                 continue
-            if not need_repack_file.unpacking(tmp_unpacking_dir, password):
+            size = need_repack_file.unpacking(tmp_unpacking_dir, password)
+            if size is None:
                 logging.error(f"{need_repack_file.name} unpacking failed, skip")
                 error_file(need_repack_file)
                 continue
             clear_dir(tmp_local_dir)
-            size = need_repack_file.packing(tmp_repacked_dir)
-            if size is None:
-                logging.error(f"{need_repack_file.name} repacking failed, skip")
-                error_file(need_repack_file)
-                continue
-            while rclone.remaining_space(destination_dir[target_index]) < size:
-                logging.info(f"{destination_dir[target_index]} no enough space, change to next")
-                target_index += 1
-                if target_index >= len(destination_dir):
-                    logging.error(f"{need_repack_file.name} no enough space, stop")
+
+            if do_not_repack:
+                while rclone.remaining_space(destination_dir[target_index]) < size:
+                    logging.info(f"{destination_dir[target_index]} no enough space, change to next")
+                    target_index += 1
+                    if target_index >= len(destination_dir):
+                        logging.error(f"{need_repack_file.name} no enough space, stop")
+                        error_file(need_repack_file)
+                        exit(1)
+                need_repack_file.repacked_post_path = destination_dir[target_index]
+                if not need_repack_file.post_to_remote_without_repack():
+                    logging.error(f"{need_repack_file.name} post to remote failed, skip")
                     error_file(need_repack_file)
-                    exit(1)
-            clear_dir(tmp_unpacking_dir)
-            need_repack_file.repacked_post_path = destination_dir[target_index]
-            if not need_repack_file.post_to_remote():
-                logging.error(f"{need_repack_file.name} post to remote failed, skip")
-                error_file(need_repack_file)
-                continue
-            clear_dir(tmp_repacked_dir)
-            logging.info(f"{need_repack_file.name} repack complete")
+                    continue
+                clear_dir(tmp_unpacking_dir)
+                logging.info(f"{need_repack_file.name} post complete")
+            else:
+                size = need_repack_file.packing(tmp_repacked_dir)
+                if size is None:
+                    logging.error(f"{need_repack_file.name} repacking failed, skip")
+                    error_file(need_repack_file)
+                    continue
+                while rclone.remaining_space(destination_dir[target_index]) < size:
+                    logging.info(f"{destination_dir[target_index]} no enough space, change to next")
+                    target_index += 1
+                    if target_index >= len(destination_dir):
+                        logging.error(f"{need_repack_file.name} no enough space, stop")
+                        error_file(need_repack_file)
+                        exit(1)
+                clear_dir(tmp_unpacking_dir)
+                need_repack_file.repacked_post_path = destination_dir[target_index]
+                if not need_repack_file.post_to_remote():
+                    logging.error(f"{need_repack_file.name} post to remote failed, skip")
+                    error_file(need_repack_file)
+                    continue
+                clear_dir(tmp_repacked_dir)
+                logging.info(f"{need_repack_file.name} post complete")
         except Exception as e:
             logging.error(e)
             error_file(need_repack_file)

@@ -117,16 +117,22 @@ class File:
             return False
         return True
 
+    def post_to_remote_without_repack(self):
+        logging.info(f"post {self.name} to remote")
+        if not rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path):
+            return False
+        return True
+
     def unpacking(self, destination: str, password=""):
         self.unpacking_tmp_path = destination
         first_segment = self.first_segment()
         if first_segment is None:
             logging.error(f"can not find first segment of {self.name}")
-            return False
+            return None
         logging.info(f"unpacking {self.name} to {destination}")
         if not pack.unpacking(first_segment, destination, password):
-            return False
-        return True
+            return None
+        return get_files_size(self.unpacking_tmp_path)
 
     def packing(self, destination: str):
         if not destination.endswith("/") or not destination.endswith("\\"):
