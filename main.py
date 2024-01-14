@@ -102,6 +102,9 @@ if __name__ == '__main__':
     logging.info(f"get {len(source_files)} single files from remote, start repack")
     for need_repack_file in source_files:
         try:
+            clear_dir(tmp_local_dir)
+            clear_dir(tmp_unpacking_dir)
+            clear_dir(tmp_repacked_dir)
             if complete(need_repack_file, destination_files):
                 logging.info(f"{need_repack_file.name} is already complete, skip")
                 error_file(need_repack_file)
