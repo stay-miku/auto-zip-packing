@@ -164,6 +164,8 @@ async def task_thread(uuid: str):
         logging.info(f"repacking file {file.name} by thread {uuid}")
         await process_file(file, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir)
 
+    logging.info(f"thread {uuid} complete")
+
 
 async def main():
 
