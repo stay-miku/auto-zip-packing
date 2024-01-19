@@ -104,17 +104,17 @@ class File:
                 name = path.rsplit("/", 1)[-1]
                 self.segments[i]["path"] = os.path.join(self.local_path, name)
 
-    async def copy_to_local(self, local_path: str):
+    async def copy_to_local(self, local_path: str, thread_name: str):
         self.local_path = local_path
         logging.info(f"copying {self.name} to local")
         logging.info(f"current file have {len(self.segments)} segments")
         path = [i["path"] for i in self.segments]
-        if not await rclone.copy_file(path, local_path):
+        if not await rclone.copy_file(path, local_path, thread_name):
             return False
         self.rename()
         return True
 
-    async def post_to_remote(self):
+    async def post_to_remote(self, thread_name: str):
         logging.info(f"post {self.name} to remote")
         # segments = os.listdir(self.repacked_path)
         # for i in segments:
@@ -122,13 +122,13 @@ class File:
         #     if result != 0:
         #         logging.error(f"post {self.name} failed")
         #         return False
-        if not await rclone.copy_file(self.repacked_path, self.repacked_post_path):
+        if not await rclone.copy_file(self.repacked_path, self.repacked_post_path, thread_name):
             return False
         return True
 
-    async def post_to_remote_without_repack(self):
+    async def post_to_remote_without_repack(self, thread_name: str):
         logging.info(f"post {self.name} to remote")
-        if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path):
+        if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path, thread_name):
             return False
         return True
 

@@ -34,7 +34,7 @@ async def execute(command: str, get_output=False):
         return process.returncode
 
 
-async def copy_file(source: str or List[str], destination: str):
+async def copy_file(source: str or List[str], destination: str, thread_name: str):
     if isinstance(source, str):
         return_code = await execute(f'rclone copy "{source}" "{destination}" -P')
         if return_code != 0:
@@ -43,11 +43,11 @@ async def copy_file(source: str or List[str], destination: str):
         return True
     # 需要为同一drive的同一文件夹内的文件
     else:
-        with open("list.txt", "w") as f:
+        with open(f"list-{thread_name}.txt", "w") as f:
             for i in source:
                 f.write(i.rsplit("/", 1)[-1] + "\n")
         drive = source[0].rsplit("/", 1)[0] + "/"
-        return_code = await execute(f'rclone copy "{drive}" "{destination}" --include-from=list.txt -P')
+        return_code = await execute(f'rclone copy "{drive}" "{destination}" --include-from=list-{thread_name}.txt -P')
         if return_code != 0:
             logging.error(f"rclone copy {drive} {destination} failed with return code {return_code}")
             return False

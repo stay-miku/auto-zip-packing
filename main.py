@@ -75,7 +75,7 @@ async def get_task_file():
         return file
 
 
-async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir):
+async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir, thread_name: str):
     try:
         target_index = 0
         clear_dir(tmp_local_dir)
@@ -86,7 +86,7 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
         #     error_file(need_repack_file)
         #     return
         logging.info(f"start repack {need_repack_file.name}")
-        if not await need_repack_file.copy_to_local(tmp_local_dir):
+        if not await need_repack_file.copy_to_local(tmp_local_dir, thread_name):
             logging.error(f"{need_repack_file.name} copy to local failed, skip")
             error_file(need_repack_file)
             return
@@ -106,7 +106,7 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                     error_file(need_repack_file)
                     exit(1)
             need_repack_file.repacked_post_path = destination_dir[target_index]
-            if not await need_repack_file.post_to_remote_without_repack():
+            if not await need_repack_file.post_to_remote_without_repack(thread_name):
                 logging.error(f"{need_repack_file.name} post to remote failed, skip")
                 error_file(need_repack_file)
                 return
@@ -127,7 +127,7 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                     exit(1)
             clear_dir(tmp_unpacking_dir)
             need_repack_file.repacked_post_path = destination_dir[target_index]
-            if not await need_repack_file.post_to_remote():
+            if not await need_repack_file.post_to_remote(thread_name):
                 logging.error(f"{need_repack_file.name} post to remote failed, skip")
                 error_file(need_repack_file)
                 return
@@ -164,7 +164,7 @@ async def task_thread(uuid: str):
         if file is None:
             break
         logging.info(f"repacking file {file.name} by thread {uuid}")
-        await process_file(file, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir)
+        await process_file(file, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir, uuid)
         i += 1
 
     logging.info(f"thread {uuid} complete, repack {i} files")
