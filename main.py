@@ -86,11 +86,11 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
         #     error_file(need_repack_file)
         #     return
         logging.info(f"start repack {need_repack_file.name}")
-        if not need_repack_file.copy_to_local(tmp_local_dir):
+        if not await need_repack_file.copy_to_local(tmp_local_dir):
             logging.error(f"{need_repack_file.name} copy to local failed, skip")
             error_file(need_repack_file)
             return
-        size = need_repack_file.unpacking(tmp_unpacking_dir, password)
+        size = await need_repack_file.unpacking(tmp_unpacking_dir, password)
         if size is None:
             logging.error(f"{need_repack_file.name} unpacking failed, skip")
             error_file(need_repack_file)
@@ -98,7 +98,7 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
         clear_dir(tmp_local_dir)
 
         if do_not_repack:
-            while rclone.remaining_space(destination_dir[target_index]) < size:
+            while await rclone.remaining_space(destination_dir[target_index]) < size:
                 logging.info(f"{destination_dir[target_index]} no enough space, change to next")
                 target_index += 1
                 if target_index >= len(destination_dir):
@@ -106,19 +106,19 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                     error_file(need_repack_file)
                     exit(1)
             need_repack_file.repacked_post_path = destination_dir[target_index]
-            if not need_repack_file.post_to_remote_without_repack():
+            if not await need_repack_file.post_to_remote_without_repack():
                 logging.error(f"{need_repack_file.name} post to remote failed, skip")
                 error_file(need_repack_file)
                 return
             clear_dir(tmp_unpacking_dir)
             logging.info(f"{need_repack_file.name} post complete")
         else:
-            size = need_repack_file.packing(tmp_repacked_dir)
+            size = await need_repack_file.packing(tmp_repacked_dir)
             if size is None:
                 logging.error(f"{need_repack_file.name} repacking failed, skip")
                 error_file(need_repack_file)
                 return
-            while rclone.remaining_space(destination_dir[target_index]) < size:
+            while await rclone.remaining_space(destination_dir[target_index]) < size:
                 logging.info(f"{destination_dir[target_index]} no enough space, change to next")
                 target_index += 1
                 if target_index >= len(destination_dir):
@@ -127,7 +127,7 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                     exit(1)
             clear_dir(tmp_unpacking_dir)
             need_repack_file.repacked_post_path = destination_dir[target_index]
-            if not need_repack_file.post_to_remote():
+            if not await need_repack_file.post_to_remote():
                 logging.error(f"{need_repack_file.name} post to remote failed, skip")
                 error_file(need_repack_file)
                 return
