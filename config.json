@@ -9,5 +9,6 @@
   "max_depth": "rclone ls的--max-depth参数，此项为数字，需要把这段话删掉填写数字",
   "tmp_dir": "临时文件夹，copy 解压缩 重新打包等操作会用到，如/root/tmp/ (相对路径也可以，但是不知道会不会出错)",
   "do_not_repack": "是否设置为不需要重新打包，直接解压完就上传，可选值为true或false",
-  "tasks": "纯数字，任务数"
+  "tasks": "纯数字，任务数",
+  "repack_type": "重新打包的类型，可选值为rar或7z"
 }
