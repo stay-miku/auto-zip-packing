@@ -38,6 +38,9 @@ def get_file_name(file: List[str]):
     if division[2].startswith("r") and division[2][1:].isdigit():
         return division[0] + ".rar"
 
+    if division[2].lower() in ["zip", "7z", "rar"]:
+        return file_name
+
     logging.warning(f"can not get file type from {file_full_path}")
     return file_name
 
@@ -101,17 +104,17 @@ class File:
                 name = path.rsplit("/", 1)[-1]
                 self.segments[i]["path"] = os.path.join(self.local_path, name)
 
-    def copy_to_local(self, local_path: str):
+    async def copy_to_local(self, local_path: str):
         self.local_path = local_path
         logging.info(f"copying {self.name} to local")
         logging.info(f"current file have {len(self.segments)} segments")
         path = [i["path"] for i in self.segments]
-        if not rclone.copy_file(path, local_path):
+        if not await rclone.copy_file(path, local_path):
             return False
         self.rename()
         return True
 
-    def post_to_remote(self):
+    async def post_to_remote(self):
         logging.info(f"post {self.name} to remote")
         # segments = os.listdir(self.repacked_path)
         # for i in segments:
@@ -119,33 +122,33 @@ class File:
         #     if result != 0:
         #         logging.error(f"post {self.name} failed")
         #         return False
-        if not rclone.copy_file(self.repacked_path, self.repacked_post_path):
+        if not await rclone.copy_file(self.repacked_path, self.repacked_post_path):
             return False
         return True
 
-    def post_to_remote_without_repack(self):
+    async def post_to_remote_without_repack(self):
         logging.info(f"post {self.name} to remote")
-        if not rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path):
+        if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path):
             return False
         return True
 
-    def unpacking(self, destination: str, password=""):
+    async def unpacking(self, destination: str, password=""):
         self.unpacking_tmp_path = destination
         first_segment = self.first_segment()
         if first_segment is None:
             logging.error(f"can not find first segment of {self.name}")
             return None
         logging.info(f"unpacking {self.name} to {destination}")
-        if not pack.unpacking(first_segment, destination, password):
+        if not await pack.unpacking(first_segment, destination, password):
             return None
         return get_files_size(self.unpacking_tmp_path)
 
-    def packing(self, destination: str):
+    async def packing(self, destination: str):
         if not destination.endswith("/") or not destination.endswith("\\"):
             destination += "/"
         self.repacked_path = destination
         logging.info(f"packing {self.name} to {destination}")
-        if not pack.packing(self.unpacking_tmp_path, destination + self.name + ".7z", password="", segment_size=(0 if len(self.segments) <= 1 else max([i["size"] for i in self.segments]))):
+        if not await pack.packing(self.unpacking_tmp_path, destination + self.name + ".7z", password="", segment_size=(0 if len(self.segments) <= 1 else max([i["size"] for i in self.segments]))):
             return None
         return get_files_size(self.repacked_path)
 

@@ -2,14 +2,17 @@ import json
 import logging
 import subprocess
 from typing import List
+import asyncio
 
 
-def execute(command: str, get_output=False):
+async def execute(command: str, get_output=False):
     logging.info(f"executing: {command}, get_output: {get_output}")
     if get_output:
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
-        logging.debug(result.stdout.decode('utf-8'))
-        return result.stdout.decode('utf-8'), result.returncode
+        # result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        process = await asyncio.create_subprocess_shell(command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, shell=True)
+        stdout, stderr = await process.communicate()
+        logging.debug(stdout.decode('utf-8') + stderr.decode('utf-8'))
+        return stdout.decode('utf-8') + stderr.decode('utf-8'), process.returncode
     else:
         # process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         # last_output = ""
@@ -25,13 +28,15 @@ def execute(command: str, get_output=False):
         #     logging.error(last_output)
         # logging.info(last_output)
         # return process.returncode
-        result = subprocess.run(command, shell=True)
-        return result.returncode
+        # result = subprocess.run(command, shell=True)
+        process = await asyncio.create_subprocess_shell(command, shell=True)
+        stdout, stderr = await process.communicate()
+        return process.returncode
 
 
-def copy_file(source: str or List[str], destination: str):
+async def copy_file(source: str or List[str], destination: str):
     if isinstance(source, str):
-        return_code = execute(f'rclone copy "{source}" "{destination}" -P')
+        return_code = await execute(f'rclone copy "{source}" "{destination}" -P')
         if return_code != 0:
             logging.error(f"rclone copy {source} {destination} failed with return code {return_code}")
             return False
@@ -42,17 +47,17 @@ def copy_file(source: str or List[str], destination: str):
             for i in source:
                 f.write(i.rsplit("/", 1)[-1] + "\n")
         drive = source[0].rsplit("/", 1)[0] + "/"
-        return_code = execute(f'rclone copy "{drive}" "{destination}" --include-from=list.txt -P')
+        return_code = await execute(f'rclone copy "{drive}" "{destination}" --include-from=list.txt -P')
         if return_code != 0:
             logging.error(f"rclone copy {drive} {destination} failed with return code {return_code}")
             return False
         return True
 
 
-def ls(path: str, max_depth=20):
+async def ls(path: str, max_depth=20):
     if not path.endswith("/") and not path.endswith("\\"):
         path += "/"
-    output, return_code = execute(f'rclone ls "{path}" --max-depth={max_depth}', get_output=True)
+    output, return_code = await execute(f'rclone ls "{path}" --max-depth={max_depth}', get_output=True)
     if return_code != 0:
         logging.error(f"rclone ls {path} failed with return code {return_code}")
         return []
@@ -61,10 +66,10 @@ def ls(path: str, max_depth=20):
     return file_and_size
 
 
-def remaining_space(path: str):
+async def remaining_space(path: str):
     if not path.endswith("/") and not path.endswith("\\"):
         path += "/"
-    output, return_code = execute(f'rclone about "{path}" --json', get_output=True)
+    output, return_code = await execute(f'rclone about "{path}" --json', get_output=True)
     if return_code != 0:
         logging.error(f"rclone about {path} failed with return code {return_code}")
         return 0
