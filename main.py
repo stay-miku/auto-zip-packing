@@ -157,14 +157,17 @@ async def task_thread(uuid: str):
     clear_dir(tmp_unpacking_dir)
     clear_dir(tmp_repacked_dir)
 
+    i = 0
+
     while True:
         file = await get_task_file()
         if file is None:
             break
         logging.info(f"repacking file {file.name} by thread {uuid}")
         await process_file(file, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir)
+        i += 1
 
-    logging.info(f"thread {uuid} complete")
+    logging.info(f"thread {uuid} complete, repack {i} files")
 
 
 async def main():
