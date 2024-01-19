@@ -42,10 +42,16 @@ def get_file_name(file: List[str]):
     return file_name
 
 
+def get_file_path(file: List[str]):
+    file_full_path = file[1]
+    file_path = file_full_path.rsplit("/", 1)[0]
+    return file_path
+
+
 def group_file(file_list: List[List[str]]):
     grouped_file = {}
     for file in file_list:
-        file_name = get_file_name(file)
+        file_name = get_file_path(file) + "/" + get_file_name(file)
         if file_name not in grouped_file:
             grouped_file[file_name] = []
         grouped_file[file_name].append(file)
@@ -155,6 +161,7 @@ class File:
             if len(f) < 1:
                 raise Exception(f"file list is empty: {i}")
             elif len(f) == 1:
+                i = i.rsplit("/", 1)[-1]
                 file = File()
                 f = f[0]
                 file.remote_path = f[1].rsplit("/", 1)[0]
@@ -168,6 +175,7 @@ class File:
                 file.repacked_post_path = repacked_post_path
                 files.append(file)
             else:
+                i = i.rsplit("/", 1)[-1]
                 file = File()
                 file.remote_path = f[0][1].rsplit("/", 1)[0]
                 file.local_path = ""

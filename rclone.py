@@ -8,6 +8,7 @@ def execute(command: str, get_output=False):
     logging.info(f"executing: {command}, get_output: {get_output}")
     if get_output:
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+        logging.debug(result.stdout.decode('utf-8'))
         return result.stdout.decode('utf-8'), result.returncode
     else:
         # process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
