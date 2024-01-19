@@ -200,7 +200,7 @@ async def main():
     source_files = await rclone.ls(source_dir, max_depth)
     destination_files = []
     for i in destination_dir:
-        destination_files += rclone.ls(i, max_depth)
+        destination_files += await rclone.ls(i, max_depth)
 
     source_files = File.from_list(source_files, destination_dir[0])
     destination_files = File.from_list(destination_files, "")
