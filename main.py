@@ -32,13 +32,20 @@ def complete(file: File, completed_file: List[File]):
     return False
 
 
-def clear_dir(path: str):
-    if os.path.exists(path):
-        for i in os.listdir(path):
-            if os.path.isdir(os.path.join(path, i)):
-                shutil.rmtree(os.path.join(path, i))
-            else:
-                os.remove(os.path.join(path, i))
+async def clear_dir(path: str):
+    # if os.path.exists(path):
+    #     for i in os.listdir(path):
+    #         if os.path.isdir(os.path.join(path, i)):
+    #             shutil.rmtree(os.path.join(path, i))
+    #         else:
+    #             os.remove(os.path.join(path, i))
+    if not path.endswith("/") or not path.endswith("\\"):
+        path += "/"
+    return_code = await rclone.execute(f'rm -rf "{path}"*')
+    if return_code != 0:
+        logging.error(f"clear dir {path} failed with return code {return_code}")
+        return False
+    return True
 
 
 def error_log(log: str, file_name: str = "error.log"):
@@ -78,9 +85,13 @@ async def get_task_file():
 async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir, tmp_repacked_dir, thread_name: str):
     try:
         target_index = 0
-        clear_dir(tmp_local_dir)
-        clear_dir(tmp_unpacking_dir)
-        clear_dir(tmp_repacked_dir)
+        # clear_dir(tmp_local_dir)
+        # clear_dir(tmp_unpacking_dir)
+        # clear_dir(tmp_repacked_dir)
+        if not (await clear_dir(tmp_local_dir) and await clear_dir(tmp_unpacking_dir) and await clear_dir(tmp_repacked_dir)):
+            logging.error(f"{need_repack_file.name} clear tmp dir failed, skip")
+            error_file(need_repack_file)
+            return
         # if complete(need_repack_file, destination_files):
         #     logging.info(f"{need_repack_file.name} is already complete, skip")
         #     error_file(need_repack_file)
@@ -95,7 +106,10 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
             logging.error(f"{need_repack_file.name} unpacking failed, skip")
             error_file(need_repack_file)
             return
-        clear_dir(tmp_local_dir)
+        if not await clear_dir(tmp_local_dir):
+            logging.error(f"{need_repack_file.name} clear tmp dir failed, skip")
+            error_file(need_repack_file)
+            return
 
         if do_not_repack:
             while await rclone.remaining_space(destination_dir[target_index]) < size:
@@ -110,7 +124,10 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                 logging.error(f"{need_repack_file.name} post to remote failed, skip")
                 error_file(need_repack_file)
                 return
-            clear_dir(tmp_unpacking_dir)
+            if not await clear_dir(tmp_unpacking_dir):
+                logging.error(f"{need_repack_file.name} clear tmp dir failed, skip")
+                error_file(need_repack_file)
+                return
             logging.info(f"{need_repack_file.name} post complete")
         else:
             size = await need_repack_file.packing(tmp_repacked_dir)
@@ -125,13 +142,19 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                     logging.error(f"{need_repack_file.name} no enough space, stop")
                     error_file(need_repack_file)
                     exit(1)
-            clear_dir(tmp_unpacking_dir)
+            if not await clear_dir(tmp_unpacking_dir):
+                logging.error(f"{need_repack_file.name} clear tmp dir failed, skip")
+                error_file(need_repack_file)
+                return
             need_repack_file.repacked_post_path = destination_dir[target_index]
             if not await need_repack_file.post_to_remote(thread_name):
                 logging.error(f"{need_repack_file.name} post to remote failed, skip")
                 error_file(need_repack_file)
                 return
-            clear_dir(tmp_repacked_dir)
+            if not await clear_dir(tmp_repacked_dir):
+                logging.error(f"{need_repack_file.name} clear tmp dir failed, skip")
+                error_file(need_repack_file)
+                return
             logging.info(f"{need_repack_file.name} post complete")
     except Exception as e:
         logging.error(e)
@@ -153,9 +176,9 @@ async def task_thread(uuid: str):
     if not os.path.exists(tmp_repacked_dir):
         os.makedirs(tmp_repacked_dir)
 
-    clear_dir(tmp_local_dir)
-    clear_dir(tmp_unpacking_dir)
-    clear_dir(tmp_repacked_dir)
+    await clear_dir(tmp_local_dir)
+    await clear_dir(tmp_unpacking_dir)
+    await clear_dir(tmp_repacked_dir)
 
     i = 0
 
