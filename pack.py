@@ -5,8 +5,9 @@ from config import repack_type
 
 
 async def packing(source: str, destination: str, segment_size=-1, password=""):
-    if not source.endswith("/") or not source.endswith("\\"):
+    if not source.endswith("/") and not source.endswith("\\"):
         source += "/"
+    destination += "." + repack_type
     if repack_type == "7z":
         return_code = await execute(f'7z a {"-v" + str(segment_size) if segment_size > 0 else ""} {"-p" + password if password != "" else ""} -t7z -mx=0 -r "{destination}" "{source}"*')
     elif repack_type == "rar":

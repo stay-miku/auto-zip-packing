@@ -127,7 +127,7 @@ class File:
         #         logging.error(f"post {self.name} failed")
         #         return False
         if keep_relative_path:
-            if not self.repacked_post_path.endswith("/") or not self.repacked_post_path.endswith("\\"):
+            if not self.repacked_post_path.endswith("/") and not self.repacked_post_path.endswith("\\"):
                 self.repacked_post_path += "/"
             if not await rclone.copy_file(self.repacked_path, self.repacked_post_path + self.relative_path, thread_name):
                 return False
@@ -139,7 +139,7 @@ class File:
     async def post_to_remote_without_repack(self, thread_name: str):
         logging.info(f"post {self.name} to remote")
         if keep_relative_path:
-            if not self.repacked_post_path.endswith("/") or not self.repacked_post_path.endswith("\\"):
+            if not self.repacked_post_path.endswith("/") and not self.repacked_post_path.endswith("\\"):
                 self.repacked_post_path += "/"
             if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path + self.relative_path, thread_name):
                 return False
@@ -160,11 +160,11 @@ class File:
         return get_files_size(self.unpacking_tmp_path)
 
     async def packing(self, destination: str):
-        if not destination.endswith("/") or not destination.endswith("\\"):
+        if not destination.endswith("/") and not destination.endswith("\\"):
             destination += "/"
         self.repacked_path = destination
         logging.info(f"packing {self.name} to {destination}")
-        if not await pack.packing(self.unpacking_tmp_path, destination + self.name + ".7z", password="", segment_size=(0 if len(self.segments) <= 1 else max([i["size"] for i in self.segments]))):
+        if not await pack.packing(self.unpacking_tmp_path, destination + self.name, password="", segment_size=(0 if len(self.segments) <= 1 else max([i["size"] for i in self.segments]))):
             return None
         return get_files_size(self.repacked_path)
 
@@ -184,7 +184,7 @@ class File:
                 file = File()
                 f = f[0]
                 file.remote_path = f[1].rsplit("/", 1)[0]
-                file.relative_path = f[2].split("/", 1)[0]
+                file.relative_path = f[2].rsplit("/", 1)[0]
                 file.remote_root_path = f[4]
                 file.local_path = ""
                 file.file_format = i.rsplit(".", 1)[-1]
@@ -199,7 +199,7 @@ class File:
                 i = i.rsplit("/", 1)[-1]
                 file = File()
                 file.remote_path = f[0][1].rsplit("/", 1)[0]
-                file.relative_path = f[0][2].split("/", 1)[0]
+                file.relative_path = f[0][2].rsplit("/", 1)[0]
                 file.remote_root_path = f[0][4]
                 file.local_path = ""
                 file.file_format = i.rsplit(".", 1)[-1]
