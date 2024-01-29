@@ -54,16 +54,23 @@ async def copy_file(source: str or List[str], destination: str, thread_name: str
         return True
 
 
+# return [[size, full_path, relative_path, name, root_path], ...]
 async def ls(path: str, max_depth=20):
     if not path.endswith("/") and not path.endswith("\\"):
         path += "/"
-    output, return_code = await execute(f'rclone ls "{path}" --max-depth={max_depth}', get_output=True)
+    # output, return_code = await execute(f'rclone ls "{path}" --max-depth={max_depth}', get_output=True)
+    # if return_code != 0:
+    #     logging.error(f"rclone ls {path} failed with return code {return_code}")
+    #     return []
+    # files_path = output.split('\n')
+    # file_info = [[int(i.strip().split(" ", 1)[0]), path + i.strip().split(" ", 1)[-1]] for i in files_path if i != '']
+    output, return_code = await execute(f'rclone lsjson "{path}" --max-depth={max_depth}', get_output=True)
     if return_code != 0:
-        logging.error(f"rclone ls {path} failed with return code {return_code}")
+        logging.error(f"rclone lsjson {path} failed with return code {return_code}")
         return []
-    files_path = output.split('\n')
-    file_and_size = [[int(i.strip().split(" ", 1)[0]), path + i.strip().split(" ", 1)[-1]] for i in files_path if i != '']
-    return file_and_size
+    files = json.loads(output)
+    file_info = [[i['Size'], path + i['Path'], i['Path'], i['Name'], path] for i in files if i["IsDir"] is False]
+    return file_info
 
 
 async def remaining_space(path: str):

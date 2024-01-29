@@ -4,6 +4,8 @@ import rclone
 import logging
 import pack
 
+from config import keep_relative_path
+
 
 def get_files_size(path: str):
     total_size = 0
@@ -64,6 +66,8 @@ def group_file(file_list: List[List[str]]):
 
 class File:
     remote_path: str
+    remote_root_path: str
+    relative_path: str
     local_path: str
     repacked_path: str  # 重新打包后的文件路径
     repacked_post_path: str  # 重新打包后的文件上传路径
@@ -122,14 +126,26 @@ class File:
         #     if result != 0:
         #         logging.error(f"post {self.name} failed")
         #         return False
-        if not await rclone.copy_file(self.repacked_path, self.repacked_post_path, thread_name):
-            return False
+        if keep_relative_path:
+            if not self.repacked_post_path.endswith("/") or not self.repacked_post_path.endswith("\\"):
+                self.repacked_post_path += "/"
+            if not await rclone.copy_file(self.repacked_path, self.repacked_post_path + self.relative_path, thread_name):
+                return False
+        else:
+            if not await rclone.copy_file(self.repacked_path, self.repacked_post_path, thread_name):
+                return False
         return True
 
     async def post_to_remote_without_repack(self, thread_name: str):
         logging.info(f"post {self.name} to remote")
-        if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path, thread_name):
-            return False
+        if keep_relative_path:
+            if not self.repacked_post_path.endswith("/") or not self.repacked_post_path.endswith("\\"):
+                self.repacked_post_path += "/"
+            if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path + self.relative_path, thread_name):
+                return False
+        else:
+            if not await rclone.copy_file(self.unpacking_tmp_path, self.repacked_post_path, thread_name):
+                return False
         return True
 
     async def unpacking(self, destination: str, password=""):
@@ -168,6 +184,8 @@ class File:
                 file = File()
                 f = f[0]
                 file.remote_path = f[1].rsplit("/", 1)[0]
+                file.relative_path = f[2].split("/", 1)[0]
+                file.remote_root_path = f[4]
                 file.local_path = ""
                 file.file_format = i.rsplit(".", 1)[-1]
                 file.size = f[0]
@@ -181,6 +199,8 @@ class File:
                 i = i.rsplit("/", 1)[-1]
                 file = File()
                 file.remote_path = f[0][1].rsplit("/", 1)[0]
+                file.relative_path = f[0][2].split("/", 1)[0]
+                file.remote_root_path = f[0][4]
                 file.local_path = ""
                 file.file_format = i.rsplit(".", 1)[-1]
                 file.size = sum([j[0] for j in f])
