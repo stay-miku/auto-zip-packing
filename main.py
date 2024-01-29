@@ -141,7 +141,7 @@ async def process_file(need_repack_file: File, tmp_local_dir, tmp_unpacking_dir,
                 if target_index >= len(destination_dir):
                     logging.error(f"{need_repack_file.name} no enough space, stop")
                     error_file(need_repack_file)
-                    exit(1)
+                    return
             if not await clear_dir(tmp_unpacking_dir):
                 logging.error(f"{need_repack_file.name} clear tmp dir failed, skip")
                 error_file(need_repack_file)
