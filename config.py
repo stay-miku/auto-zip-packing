@@ -13,3 +13,8 @@ do_not_repack = config["do_not_repack"]
 task_num = config["tasks"]
 repack_type = config["repack_type"]
 keep_relative_path = config["keep_relative_path"]
+
+password += ""  # 空密码
+
+if repack_type == "rar":
+    raise TypeError("rar is not supported yet")

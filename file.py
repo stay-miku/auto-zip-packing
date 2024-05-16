@@ -148,7 +148,7 @@ class File:
                 return False
         return True
 
-    async def unpacking(self, destination: str, password=""):
+    async def unpacking(self, destination: str, password=[]):
         self.unpacking_tmp_path = destination
         first_segment = self.first_segment()
         if first_segment is None:
