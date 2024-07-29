@@ -190,7 +190,7 @@ class File:
                 file.local_path = ""
                 file.file_format = i.rsplit(".", 1)[-1]
                 file.size = f[0]
-                file.name = i.split(".", 1)[0]
+                file.name = i.rsplit(".", 1)[0]
                 # file.name = i
                 file.segments = [{"size": f[0], "path": f[1]}]
                 file.repacked_path = ""
@@ -205,7 +205,7 @@ class File:
                 file.local_path = ""
                 file.file_format = i.rsplit(".", 1)[-1]
                 file.size = sum([j[0] for j in f])
-                file.name = i.split(".", 1)[0]
+                file.name = i.rsplit(".", 1)[0]
                 # file.name = i
                 file.segments = []
                 for j in f:
