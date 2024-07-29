@@ -138,13 +138,14 @@ class File:
 
     async def post_to_remote_without_repack(self, thread_name: str):
         logging.info(f"post {self.name} to remote")
+        name, _ = os.path.splitext(os.path.basename(self.segments[0]["path"]))
         if keep_relative_path:
             if not self.repacked_post_path.endswith("/") and not self.repacked_post_path.endswith("\\"):
                 self.repacked_post_path += "/"
-            if not await rclone.copy_file(self.unpacking_tmp_path, os.path.join(self.repacked_post_path + os.path.dirname(self.relative_path), self.name), thread_name):
+            if not await rclone.copy_file(self.unpacking_tmp_path, os.path.join(self.repacked_post_path + os.path.dirname(self.relative_path), name), thread_name):
                 return False
         else:
-            if not await rclone.copy_file(self.unpacking_tmp_path, os.path.join(self.repacked_post_path, self.name), thread_name):
+            if not await rclone.copy_file(self.unpacking_tmp_path, os.path.join(self.repacked_post_path, name), thread_name):
                 return False
         return True
 
